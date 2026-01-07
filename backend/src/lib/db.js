@@ -1,11 +1,12 @@
 import mongoose from 'mongoose';
+import {ENV} from './env.js';
 
 export const connectDB = async () => {
     try{
-        const {MONGOURI} = process.env;
-        if(!MONGOURI) throw new Error("MONGOURI IS NOT SET");
+        const {MONGO_URI} = ENV;
+        if(!MONGO_URI) throw new Error("MONGOURI IS NOT SET");
         
-        const conn = await mongoose.connect(MONGOURI);
+        const conn = await mongoose.connect(ENV.MONGO_URI);
         console.log("mongodb conncected",conn.connection.host)
     }
     catch(error){
