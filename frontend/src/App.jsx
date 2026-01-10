@@ -3,9 +3,23 @@ import ChatPage from "./pages/ChatPage"
 import LoginPage from "./pages/LoginPage"
 import SignUpPage from "./pages/SignUpPage"
 import { useAuthStore } from "./store/useAuthStore"
+import { useEffect } from "react"
+import { Navigate } from "react-router"
+import PageLoader from "./components/PageLoader"
+import { Toaster } from "react-hot-toast"
+
 
 export default function App() {
-  const {authUser,login,isLoggedIn} = useAuthStore();
+
+  const {checkAuth,isCheckingAuth,authUser} = useAuthStore()
+
+  useEffect(()=>{
+    checkAuth()
+  },[checkAuth])
+  
+
+  if(isCheckingAuth) return <PageLoader />
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0b0d12]">
 
@@ -19,10 +33,12 @@ export default function App() {
       {/* CONTENT */}
       <div className="relative z-10">
         <Routes>
-          <Route path="/" element={<ChatPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/" element={authUser ? <ChatPage /> : <Navigate to={"/login"}/>} />
+          <Route path="/login" element={!authUser ?<LoginPage /> : <Navigate to={"/"}/>} />
+          <Route path="/signup" element={!authUser ?<SignUpPage />: <Navigate to={"/"}/>} />
         </Routes>
+
+        <Toaster/>
       </div>
 
     </div>
