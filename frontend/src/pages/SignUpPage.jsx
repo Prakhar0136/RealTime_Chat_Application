@@ -4,6 +4,7 @@ import { MessageCircleIcon, LockIcon, MailIcon, UserIcon, LoaderIcon } from "luc
 import { Link } from "react-router";
 import BorderAnimatedContainer from '../components/BorderAnimatedContainer';
 
+
 function SignUpPage() {
   const [formData, setFormData] = useState({
     fullName: '',
