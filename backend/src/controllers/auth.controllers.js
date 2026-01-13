@@ -99,21 +99,35 @@ export const logout = (_,res)=>{
 export const updateProfile = async (req, res) => {
   try {
     const { profilePic } = req.body;
-    if (!profilePic) return res.status(400).json({ message: "Profile pic is required" });
-
     const userId = req.user._id;
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    console.log("1. Request received for user:", userId);
+    
+    if (!profilePic) {
+      console.log("Error: No profilePic provided");
+      return res.status(400).json({ message: "Profile pic is required" });
+    }
 
+    console.log("2. Starting Cloudinary upload...");
+    const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+        resource_type: "auto",
+        timeout: 120000 
+    });
+    console.log("3. Upload successful:", uploadResponse.secure_url);
+
+    console.log("4. Updating Database...");
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePic: uploadResponse.secure_url },
       { new: true }
     );
 
+    console.log("5. Success!");
     res.status(200).json(updatedUser);
+
   } catch (error) {
-    console.log("Error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+   
+    console.error("CRITICAL ERROR in updateProfile:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
