@@ -1,6 +1,6 @@
 import {useChatStore} from '../store/useChatStore'
 import {useAuthStore} from '../store/useAuthStore'
-import {useEffect} from "react"
+import {useEffect,useRef} from "react"
 import ChatHeader from "./ChatHeader"
 import NoChatHistoryPlaceholder from './NoChatHistoryPlaceholder'
 import MessageInput from './MessageInput'
@@ -10,10 +10,17 @@ function ChatContainer() {
 
   const{selectedUser,getMessagesByUserId,messages,isMessagesLoading} = useChatStore()
   const {authUser} = useAuthStore()
+  const messageEndRef = useRef(null)
 
   useEffect(()=>{
     getMessagesByUserId(selectedUser._id)
   },[selectedUser,getMessagesByUserId])
+
+  useEffect(()=>{
+    if(messageEndRef.current){
+      messageEndRef.current?.scrollIntoView({behavior:"smooth", block:"end"})
+    }
+  },[messages])
 
   return (
     <>
@@ -22,7 +29,7 @@ function ChatContainer() {
       <div className = "flex-1 px-6 overflow-y-auto py-8">
         {messages.length>0 && !isMessagesLoading ? (
           <div className = "mx-auto space-y-6 max-w-3xl">
-            {messages.map(msg=>(
+            {messages.filter(msg => msg && msg.senderId).map(msg=>(
               <div key = {msg._id}
                    className = {`chat ${msg.senderId===authUser._id ? "chat-end" : "chat-start"}`}
               >
@@ -38,13 +45,18 @@ function ChatContainer() {
                   {msg.text && <p className = "mt-2">{msg.text}</p>}
 
                   <p>
-                      {new Date(msg.createdAt).toISOString().slice(11,16)}
+                      {
+                        new Date(msg.createdAt).toLocaleTimeString(undefined,{
+                          hour: "2-digit",
+                          minute:"2-digit",
+                        })
+                      }
                   </p>
 
                 </div>
               </div>
             ))}
-
+            <div ref= {messageEndRef}/>
           </div>
         ) : isMessagesLoading ? <MessagesLoadingSkeleton/> : (
           <NoChatHistoryPlaceholder name = {selectedUser.fullName}/>
