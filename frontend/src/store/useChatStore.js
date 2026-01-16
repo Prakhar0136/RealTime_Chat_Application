@@ -14,10 +14,12 @@ export const useChatStore = create((set,get) => ({
     isMessagesLoading:false,
     isSoundEnabled: JSON.parse(localStorage.getItem('isSoundEnabled')) || false,
 
-    toggleSound:()=>{
-        localStorage.setItem('isSoundEnabled', !get().isSoundEnabled);
-        set({isSoundEnabled: !get().isSoundEnabled})
-    },
+    toggleSound: () => {
+  const newValue = !get().isSoundEnabled;
+  localStorage.setItem("isSoundEnabled", JSON.stringify(newValue));
+  set({ isSoundEnabled: newValue });
+},
+
 
     setActiveTab:(tab)=> set({activeTab:tab}),
     setSelectedUser:(user)=> set({selectedUser:user}),
@@ -107,7 +109,46 @@ export const useChatStore = create((set,get) => ({
 
     toast.error(error.response?.data?.message || "Something went wrong");
   }
+    },
+
+    subscribeToMessages: () => {
+  const { selectedUser } = get();
+  if (!selectedUser) return;
+
+  const socket = useAuthStore.getState().socket;
+  const { authUser } = useAuthStore.getState();
+
+  // remove existing listener before adding
+  socket.off("newMessage");
+
+  socket.on("newMessage", (newMessage) => {
+    const isRelatedToCurrentChat =
+      (newMessage.senderId === selectedUser._id &&
+        newMessage.receiverId === authUser._id) ||
+      (newMessage.senderId === authUser._id &&
+        newMessage.receiverId === selectedUser._id);
+
+    if (!isRelatedToCurrentChat) return;
+
+    set((state) => ({
+      messages: [...state.messages, newMessage],
+    }));
+
+    // 🔥 READ LIVE STATE (NOT closure)
+    if (
+      get().isSoundEnabled &&
+      newMessage.senderId !== authUser._id
+    ) {
+      const sound = new Audio("/sounds/notification.mp3");
+      sound.currentTime = 0;
+      sound.play().catch(() => {});
+    }
+  });
 },
 
 
+    unsubscribeFromMessages:()=>{
+      const socket = useAuthStore.getState().socket
+      socket.off("newMessage")
+    },
 }))
