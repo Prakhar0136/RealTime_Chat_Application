@@ -20,6 +20,17 @@ const messageSchema = new mongoose.Schema(
     image: {
       type: String,
     },
+
+    // 🔴 DELETE FEATURE CHANGE START
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+    },
+    // 🔴 DELETE FEATURE CHANGE END
+
   },
   { timestamps: true }
 );
