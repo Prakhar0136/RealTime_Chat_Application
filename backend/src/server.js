@@ -7,7 +7,6 @@ import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import { connectDB } from "./lib/db.js";
-import { ENV } from "./lib/env.js";
 import { app, server } from "./lib/socket.js";
 import { arcjetProtection } from "./middleware/arcjet.middleware.js";
 
@@ -17,19 +16,20 @@ const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
 
-// ---------------- MIDDLEWARE ----------------
+// ---------------- BASIC MIDDLEWARE ----------------
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
 app.use(cors({ credentials: true }));
 
-// ---------------- SECURITY ----------------
-app.use(arcjetProtection);
+// ---------------- ARCJET (API ONLY) ----------------
+// 🔥 DO NOT protect frontend or static files
+app.use("/api", arcjetProtection);
 
 // ---------------- API ROUTES ----------------
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-// ---------------- FRONTEND SERVING ----------------
+// ---------------- FRONTEND (PRODUCTION) ----------------
 if (process.env.NODE_ENV === "production") {
   const frontendDistPath = path.join(__dirname, "../../frontend/dist");
 
