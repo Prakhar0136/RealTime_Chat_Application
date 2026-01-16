@@ -23,34 +23,47 @@ export const useChatStore = create((set, get) => ({
   setSelectedUser: (user) => set({ selectedUser: user }),
 
   getAllContacts: async () => {
-    set({ isUsersLoading: true });
-    try {
-      const res = await axiosInstance.get("/messages/contacts");
-      set({ allContacts: res.data });
-    } finally {
-      set({ isUsersLoading: false });
-    }
-  },
+  set({ isUsersLoading: true });
+  try {
+    const res = await axiosInstance.get("/api/messages/contacts");
+    set({
+      allContacts: Array.isArray(res.data)
+        ? res.data
+        : res.data.contacts || [],
+    });
+  } finally {
+    set({ isUsersLoading: false });
+  }
+},
 
-  getMyChatPartners: async () => {
-    set({ isUsersLoading: true });
-    try {
-      const res = await axiosInstance.get("/messages/chats");
-      set({ chats: res.data });
-    } finally {
-      set({ isUsersLoading: false });
-    }
-  },
+getMyChatPartners: async () => {
+  set({ isUsersLoading: true });
+  try {
+    const res = await axiosInstance.get("/api/messages/chats");
+    set({
+      chats: Array.isArray(res.data)
+        ? res.data
+        : res.data.chats || [],
+    });
+  } finally {
+    set({ isUsersLoading: false });
+  }
+},
 
-  getMessagesByUserId: async (userId) => {
-    set({ isMessagesLoading: true });
-    try {
-      const res = await axiosInstance.get(`/messages/${userId}`);
-      set({ messages: res.data });
-    } finally {
-      set({ isMessagesLoading: false });
-    }
-  },
+getMessagesByUserId: async (userId) => {
+  set({ isMessagesLoading: true });
+  try {
+    const res = await axiosInstance.get(`/api/messages/${userId}`);
+    set({
+      messages: Array.isArray(res.data)
+        ? res.data
+        : res.data.messages || [],
+    });
+  } finally {
+    set({ isMessagesLoading: false });
+  }
+},
+
 
   sendMessage: async (messageData) => {
     const { selectedUser } = get();
