@@ -8,7 +8,6 @@ import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import { connectDB } from "./lib/db.js";
 import { app, server } from "./lib/socket.js";
-import { arcjetProtection } from "./middleware/arcjet.middleware.js";
 
 // Fix __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -20,10 +19,6 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
 app.use(cors({ credentials: true }));
-
-// ---------------- ARCJET (API ONLY) ----------------
-// 🔥 DO NOT protect frontend or static files
-app.use("/api", arcjetProtection);
 
 // ---------------- API ROUTES ----------------
 app.use("/api/auth", authRoutes);
