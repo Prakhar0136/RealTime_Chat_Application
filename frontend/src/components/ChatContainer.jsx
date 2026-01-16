@@ -8,19 +8,24 @@ import MessagesLoadingSkeleton from './MessagesLoadingSkeleton'
 
 function ChatContainer() {
 
-  const{selectedUser,getMessagesByUserId,messages,isMessagesLoading} = useChatStore()
+  const{selectedUser,getMessagesByUserId,messages,isMessagesLoading, subscribeToMessages, unsubscribeFromMessages} = useChatStore()
   const {authUser} = useAuthStore()
   const messageEndRef = useRef(null)
 
   useEffect(()=>{
     getMessagesByUserId(selectedUser._id)
-  },[selectedUser,getMessagesByUserId])
+    subscribeToMessages()
+
+    return ()=>unsubscribeFromMessages()
+  },[selectedUser,getMessagesByUserId, subscribeToMessages,unsubscribeFromMessages])
 
   useEffect(()=>{
     if(messageEndRef.current){
       messageEndRef.current?.scrollIntoView({behavior:"smooth", block:"end"})
     }
   },[messages])
+
+
 
   return (
     <>
@@ -39,7 +44,7 @@ function ChatContainer() {
                 }`}>
 
                   {msg.image && (
-                    <img src={msg.image} alt="shared"  className = "rounded-lg h-48 object-cover"/>
+                    <img src={msg.image} alt="shared"  className = "rounded-lg h-48 object-cover" onClick={()=> window.open(msg.image, "_blank")}/>
                   )}
 
                   {msg.text && <p className = "mt-2">{msg.text}</p>}
