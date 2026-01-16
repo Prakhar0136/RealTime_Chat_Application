@@ -9,33 +9,32 @@ import messageRoutes from "./routes/message.route.js";
 import { connectDB } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
 import { app, server } from "./lib/socket.js";
+import { arcjetProtection } from "./middleware/arcjet.middleware.js";
 
-// 🔹 Fix __dirname for ES modules (VERY IMPORTANT)
+// Fix __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 🔹 Render provides PORT automatically
 const PORT = process.env.PORT || 3000;
 
 // ---------------- MIDDLEWARE ----------------
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
-
-// ✅ Same-origin setup (frontend + backend together)
 app.use(cors({ credentials: true }));
+
+// ---------------- SECURITY ----------------
+app.use(arcjetProtection);
 
 // ---------------- API ROUTES ----------------
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-// ---------------- FRONTEND SERVING (PRODUCTION ONLY) ----------------
+// ---------------- FRONTEND SERVING ----------------
 if (process.env.NODE_ENV === "production") {
   const frontendDistPath = path.join(__dirname, "../../frontend/dist");
 
-  // Serve static assets
   app.use(express.static(frontendDistPath));
 
-  // React SPA fallback
   app.get("*", (req, res) => {
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
