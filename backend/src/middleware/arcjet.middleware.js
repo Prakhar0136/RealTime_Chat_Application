@@ -3,19 +3,26 @@ import { ENV } from "../lib/env.js";
 import { isSpoofedBot } from "@arcjet/inspect";
 
 /**
- * Arcjet middleware
+ * Arcjet middleware (FINAL, CORRECT)
  * IMPORTANT:
- * - Arcjet is DISABLED for auth routes
- * - Prevents 403 on login/signup/check
+ * - This middleware is mounted at /api
+ * - So req.path does NOT include /api
  */
 export const arcjetProtection = async (req, res, next) => {
-  // Disable Arcjet in development
+  // Disable Arcjet outside production
   if (ENV.NODE_ENV !== "production") {
     return next();
   }
 
-  // 🔥 CRITICAL: Skip Arcjet for auth routes
-  if (req.path.startsWith("/api/auth")) {
+  /**
+   * 🔥 CRITICAL FIX
+   * When mounted as app.use("/api", arcjetProtection),
+   * req.path will be:
+   *   /auth/login
+   *   /auth/signup
+   *   /auth/check
+   */
+  if (req.path.startsWith("/auth")) {
     return next();
   }
 
@@ -36,7 +43,6 @@ export const arcjetProtection = async (req, res, next) => {
         .json({ message: "Access denied by security policy" });
     }
 
-    // Extra spoofed bot protection
     if (decision.results.some(isSpoofedBot)) {
       return res.status(403).json({
         message: "Malicious bot activity detected",
@@ -47,6 +53,7 @@ export const arcjetProtection = async (req, res, next) => {
     next();
   } catch (error) {
     console.error("Arcjet protection error:", error);
-    next(); // Fail open (do NOT block app)
+    // Fail-open to avoid killing the app
+    next();
   }
 };
